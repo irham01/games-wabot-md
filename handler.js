@@ -9,21 +9,19 @@ import Connection from './lib/connection.js'
 import printMessage from './lib/print.js'
 import Helper from './lib/helper.js'
 import db, { loadDatabase } from './lib/database.js'
+import Queque from './lib/queque.js'
 
-// const { proto } = (await import('@adiwajshing/baileys')).default
+/** @type {import('@adiwajshing/baileys')} */
+const { getContentType, proto } = (await import('@adiwajshing/baileys')).default
+
 const isNumber = x => typeof x === 'number' && !isNaN(x)
-const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
-    clearTimeout(this)
-    resolve()
-}, ms))
-
 /**
  * Handle messages upsert
  * @this {import('./lib/connection').Socket}
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['messages.upsert']} chatUpdate
  */
 export async function handler(chatUpdate) {
-    this.msgqueque = this.msgqueque || []
+    this.msgqueque = this.msgqueque || new Queque()
     if (!chatUpdate)
         return
     let m = chatUpdate.messages[chatUpdate.messages.length - 1]
@@ -319,14 +317,10 @@ export async function handler(chatUpdate) {
         const isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
         const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
 
-        if (opts['queque'] && m.text && !(isMods || isPrems)) {
-            let queque = this.msgqueque, time = 1000 * 5
-            const previousID = queque[queque.length - 1]
-            queque.push(m.id || m.key.id)
-            setInterval(async function () {
-                if (queque.indexOf(previousID) === -1) clearInterval(this)
-                await delay(time)
-            }, time)
+        if (opts['queque'] && m.text && !m.fromMe && !(isMods || isPrems)) {
+            const id = m.id
+            this.msgqueque.add(id)
+            await this.msgqueque.waitQueue(id)
         }
 
         if (m.isBaileys)
@@ -334,7 +328,7 @@ export async function handler(chatUpdate) {
         m.exp += Math.ceil(Math.random() * 10)
 
         let usedPrefix
-        let _user = db.data && db.data.users && db.data.users[m.sender]
+        let _user = db.data?.users?.[m.sender]
 
         const groupMetadata = (m.isGroup ? await Connection.store.fetchGroupMetadata(m.chat, this.groupMetadata) : {}) || {}
         const participants = (m.isGroup ? groupMetadata.participants : []) || []
@@ -555,9 +549,8 @@ export async function handler(chatUpdate) {
         console.error(e)
     } finally {
         if (opts['queque'] && m.text) {
-            const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
-            if (quequeIndex !== -1)
-                this.msgqueque.splice(quequeIndex, 1)
+            const id = m.id
+            this.msgqueque.unqueue(id)
         }
         //console.log(db.data.users[m.sender])
         let user, stats = db.data.stats
@@ -602,7 +595,7 @@ export async function handler(chatUpdate) {
             console.log(m, m.quoted, e)
         }
         if (opts['autoread'])
-           await this.readMessages([m.key])
+            await this.readMessages([m.key])
 
     }
 }
@@ -678,27 +671,32 @@ export async function groupsUpdate(groupsUpdate) {
  * @param {import('@adiwajshing/baileys').BaileysEventMap<unknown>['messages.delete']} message 
  */
 export async function deleteUpdate(message) {
-    if (message.keys && Array.isArray(message.keys)) {
-        try {
-            for (const key of message.keys) {
-                if (key.fromMe) continue
-                const msg = Connection.store.loadMessage(key.id)
-                if (!msg) continue
-                let chat = db.data.chats[msg.key.remoteJid]
-                if (!chat || chat.delete) continue
-                const participant = msg.participant || msg.key.participant || msg.key.remoteJid
-                await this.reply(msg.key.remoteJid, `
-Terdeteksi @${participant.split`@`[0]} telah menghapus pesan
+
+    if (Array.isArray(message.keys) && message.keys.length > 0) {
+        const tasks = await Promise.allSettled(message.keys.map(async (key) => {
+            if (key.fromMe) return
+            const msg = this.loadMessage(key.remoteJid, key.id) || this.loadMessage(key.id)
+            if (!msg || !msg.message) return
+            let chat = db.data.chats[key.remoteJid]
+            if (!chat || chat.delete) return
+
+            // if message type is conversation, convert it to extended text message because if not, it will throw an error
+            const mtype = getContentType(msg.message)
+            if (mtype === 'conversation') {
+                msg.message.extendedTextMessage = { text: msg.message[mtype] }
+                delete msg.message[mtype]
+            }
+
+            const participant = msg.participant || msg.key.participant || msg.key.remoteJid
+
+            await this.reply(key.remoteJid, `
+        Terdeteksi @${participant.split`@`[0]} telah menghapus pesan
 Untuk mematikan fitur ini, ketik
 *.enable delete*
-`.trim(), msg, {
-                    mentions: [participant]
-                })
-                this.copyNForward(msg.key.remoteJid, msg).catch(e => console.log(e, msg))
-            }
-        } catch (e) {
-            console.error(e)
-        }
+`.trim(), msg, { mentions: [participant] })
+            return await this.copyNForward(key.remoteJid, msg).catch(e => console.log(e, msg))
+        }))
+        tasks.map(t => t.status === 'rejected' && console.error(t.reason))
     }
 }
 
