@@ -33,150 +33,26 @@ export async function handler(chatUpdate) {
         m = smsg(this, m) || m
         if (!m)
             return
-        m.exp = 0
         m.limit = false
         try {
             // TODO: use loop to insert data instead of this
             let user = db.data.users[m.sender]
-            if (typeof user !== 'object')
-                db.data.users[m.sender] = {}
+            if (typeof user !== 'object') db.data.users[m.sender] = {}
             if (user) {
-                if (!isNumber(user.exp))
-                    user.exp = 0
-                if (!isNumber(user.limit))
-                    user.limit = 10
-                if (!isNumber(user.lastclaim))
-                    user.lastclaim = 0
-                if (!('registered' in user))
-                    user.registered = false
+                if (!isNumber(user.limit)) user.limit = 10
+                if (!('registered' in user)) user.registered = false
                 if (!user.registered) {
-                    if (!('name' in user))
-                        user.name = m.name
-                    if (!isNumber(user.age))
-                        user.age = -1
-                    if (!isNumber(user.regTime))
-                        user.regTime = -1
+                    if (!('name' in user)) user.name = m.name
+                    if (!isNumber(user.age)) user.age = -1
+                    if (!isNumber(user.regTime)) user.regTime = -1
                 }
-                if (!isNumber(user.afk))
-                    user.afk = -1
-                if (!('afkReason' in user))
-                    user.afkReason = ''
-                if (!('banned' in user))
-                    user.banned = false
-                if (!isNumber(user.warn))
-                    user.warn = 0
-                if (!isNumber(user.level))
-                    user.level = 0
-                if (!('role' in user))
-                    user.role = 'Beginner'
-                if (!('autolevelup' in user))
-                    user.autolevelup = true
-
-                if (!isNumber(user.money))
-                    user.money = 0
-                if (!isNumber(user.health))
-                    user.health = 100
-                if (!isNumber(user.limit))
-                    user.limit = 0
-                if (!isNumber(user.potion))
-                    user.potion = 0
-                if (!isNumber(user.trash))
-                    user.trash = 0
-                if (!isNumber(user.wood))
-                    user.wood = 0
-                if (!isNumber(user.rock))
-                    user.rock = 0
-                if (!isNumber(user.string))
-                    user.string = 0
-                if (!isNumber(user.petFood))
-                    user.petFood = 0
-
-                if (!isNumber(user.emerald))
-                    user.emerald = 0
-                if (!isNumber(user.diamond))
-                    user.diamond = 0
-                if (!isNumber(user.gold))
-                    user.gold = 0
-                if (!isNumber(user.iron))
-                    user.iron = 0
-
-                if (!isNumber(user.common))
-                    user.common = 0
-                if (!isNumber(user.uncommon))
-                    user.uncommon = 0
-                if (!isNumber(user.mythic))
-                    user.mythic = 0
-                if (!isNumber(user.legendary))
-                    user.legendary = 0
-                if (!isNumber(user.pet))
-                    user.pet = 0
-
-                if (!isNumber(user.horse))
-                    user.horse = 0
-                if (!isNumber(user.horseexp))
-                    user.horseexp = 0
-                if (!isNumber(user.cat))
-                    user.cat = 0
-                if (!isNumber(user.catexp))
-                    user.catexp = 0
-                if (!isNumber(user.fox))
-                    user.fox = 0
-                if (!isNumber(user.foxhexp))
-                    user.foxexp = 0
-                if (!isNumber(user.dog))
-                    user.dog = 0
-                if (!isNumber(user.dogexp))
-                    user.dogexp = 0
-
-                if (!isNumber(user.horselastfeed))
-                    user.horselastfeed = 0
-                if (!isNumber(user.catlastfeed))
-                    user.catlastfeed = 0
-                if (!isNumber(user.foxlastfeed))
-                    user.foxlastfeed = 0
-                if (!isNumber(user.doglastfeed))
-                    user.doglastfeed = 0
-
-                if (!isNumber(user.armor))
-                    user.armor = 0
-                if (!isNumber(user.armordurability))
-                    user.armordurability = 0
-                if (!isNumber(user.sword))
-                    user.sword = 0
-                if (!isNumber(user.sworddurability))
-                    user.sworddurability = 0
-                if (!isNumber(user.pickaxe))
-                    user.pickaxe = 0
-                if (!isNumber(user.pickaxedurability))
-                    user.pickaxedurability = 0
-                if (!isNumber(user.fishingrod))
-                    user.fishingrod = 0
-                if (!isNumber(user.fishingroddurability))
-                    user.fishingroddurability = 0
-
-                if (!isNumber(user.lastclaim))
-                    user.lastclaim = 0
-                if (!isNumber(user.lastadventure))
-                    user.lastadventure = 0
-                if (!isNumber(user.lastfishing))
-                    user.lastfishing = 0
-                if (!isNumber(user.lastdungeon))
-                    user.lastdungeon = 0
-                if (!isNumber(user.lastduel))
-                    user.lastduel = 0
-                if (!isNumber(user.lastmining))
-                    user.lastmining = 0
-                if (!isNumber(user.lasthunt))
-                    user.lasthunt = 0
-                if (!isNumber(user.lastweekly))
-                    user.lastweekly = 0
-                if (!isNumber(user.lastmonthly))
-                    user.lastmonthly = 0
+                if (!isNumber(user.afk)) user.afk = -1
+                if (!('afkReason' in user)) user.afkReason = ''
+                if (!('banned' in user)) user.banned = false
+                if (!isNumber(user.warn)) user.warn = 0
             } else
                 db.data.users[m.sender] = {
-                    exp: 0,
                     limit: 10,
-                    lastclaim: 0,
                     registered: false,
                     name: m.name,
                     age: -1,
@@ -185,91 +61,22 @@ export async function handler(chatUpdate) {
                     afkReason: '',
                     banned: false,
                     warn: 0,
-                    level: 0,
-                    role: 'Beginner',
-                    autolevelup: true,
-
-                    money: 0,
-                    health: 100,
-                    limit: 100,
-                    potion: 10,
-                    trash: 0,
-                    wood: 0,
-                    rock: 0,
-                    string: 0,
-
-                    emerald: 0,
-                    diamond: 0,
-                    gold: 0,
-                    iron: 0,
-
-                    common: 0,
-                    uncommon: 0,
-                    mythic: 0,
-                    legendary: 0,
-                    pet: 0,
-
-                    horse: 0,
-                    horseexp: 0,
-                    cat: 0,
-                    catngexp: 0,
-                    fox: 0,
-                    foxexp: 0,
-                    dog: 0,
-                    dogexp: 0,
-
-                    horselastfeed: 0,
-                    catlastfeed: 0,
-                    foxlastfeed: 0,
-                    doglastfeed: 0,
-
-                    armor: 0,
-                    armordurability: 0,
-                    sword: 0,
-                    sworddurability: 0,
-                    pickaxe: 0,
-                    pickaxedurability: 0,
-                    fishingrod: 0,
-                    fishingroddurability: 0,
-
-                    lastclaim: 0,
-                    lastadventure: 0,
-                    lastfishing: 0,
-                    lastdungeon: 0,
-                    lastduel: 0,
-                    lastmining: 0,
-                    lasthunt: 0,
-                    lastweekly: 0,
-                    lastmonthly: 0,
                 }
             let chat = db.data.chats[m.chat]
-            if (typeof chat !== 'object')
-                db.data.chats[m.chat] = {}
+            if (typeof chat !== 'object') db.data.chats[m.chat] = {}
             if (chat) {
-                if (!('isBanned' in chat))
-                    chat.isBanned = false
-                if (!('welcome' in chat))
-                    chat.welcome = false
-                if (!('detect' in chat))
-                    chat.detect = false
-                if (!('sWelcome' in chat))
-                    chat.sWelcome = ''
-                if (!('sBye' in chat))
-                    chat.sBye = ''
-                if (!('sPromote' in chat))
-                    chat.sPromote = ''
-                if (!('sDemote' in chat))
-                    chat.sDemote = ''
-                if (!('delete' in chat))
-                    chat.delete = true
-                if (!('antiLink' in chat))
-                    chat.antiLink = false
-                if (!('viewonce' in chat))
-                    chat.viewonce = false
-                if (!('antiToxic' in chat))
-                    chat.antiToxic = false
-                if (!isNumber(chat.expired))
-                    chat.expired = 0
+                if (!('isBanned' in chat)) chat.isBanned = false
+                if (!('welcome' in chat)) chat.welcome = false
+                if (!('detect' in chat)) chat.detect = false
+                if (!('sWelcome' in chat)) chat.sWelcome = ''
+                if (!('sBye' in chat)) chat.sBye = ''
+                if (!('sPromote' in chat)) chat.sPromote = ''
+                if (!('sDemote' in chat)) chat.sDemote = ''
+                if (!('delete' in chat)) chat.delete = true
+                if (!('antiLink' in chat)) chat.antiLink = false
+                if (!('viewonce' in chat)) chat.viewonce = false
+                if (!('antiToxic' in chat)) chat.antiToxic = false
+                if (!isNumber(chat.expired)) chat.expired = 0
             } else
                 db.data.chats[m.chat] = {
                     isBanned: false,
@@ -322,10 +129,6 @@ export async function handler(chatUpdate) {
             this.msgqueque.add(id)
             await this.msgqueque.waitQueue(id)
         }
-
-        if (m.isBaileys)
-            return
-        m.exp += Math.ceil(Math.random() * 10)
 
         let usedPrefix
         let _user = db.data?.users?.[m.sender]
@@ -435,20 +238,8 @@ export async function handler(chatUpdate) {
                     if (name != 'owner-unbanuser.js' && user?.banned)
                         return
                 }
-                if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { // Both Owner
-                    fail('owner', m, this)
-                    continue
-                }
-                if (plugin.rowner && !isROwner) { // Real Owner
-                    fail('rowner', m, this)
-                    continue
-                }
                 if (plugin.owner && !isOwner) { // Number Owner
                     fail('owner', m, this)
-                    continue
-                }
-                if (plugin.mods && !isMods) { // Moderator
-                    fail('mods', m, this)
                     continue
                 }
                 if (plugin.premium && !isPrems) { // Premium
@@ -469,23 +260,10 @@ export async function handler(chatUpdate) {
                     fail('private', m, this)
                     continue
                 }
-                if (plugin.register == true && _user.registered == false) { // Butuh daftar?
-                    fail('unreg', m, this)
-                    continue
-                }
                 m.isCommand = true
-                let xp = 'exp' in plugin ? parseInt(plugin.exp) : 17 // XP Earning per command
-                if (xp > 200)
-                    m.reply('Ngecit -_-') // Hehehe
-                else
-                    m.exp += xp
                 if (!isPrems && plugin.limit && db.data.users[m.sender].limit < plugin.limit * 1) {
                     this.reply(m.chat, `Limit anda habis, silahkan beli melalui *${usedPrefix}buy*`, m)
                     continue // Limit habis
-                }
-                if (plugin.level > _user.level) {
-                    this.reply(m.chat, `diperlukan level ${plugin.level} untuk menggunakan perintah ini. Level kamu ${_user.level}`, m)
-                    continue // If the level has not been reached
                 }
                 let extra = {
                     match,
@@ -500,9 +278,7 @@ export async function handler(chatUpdate) {
                     groupMetadata,
                     user,
                     bot,
-                    isROwner,
                     isOwner,
-                    isRAdmin,
                     isAdmin,
                     isBotAdmin,
                     isPrems,
@@ -556,7 +332,6 @@ export async function handler(chatUpdate) {
         let user, stats = db.data.stats
         if (m) {
             if (m.sender && (user = db.data.users[m.sender])) {
-                user.exp += m.exp
                 user.limit -= m.limit * 1
             }
 
